@@ -1,0 +1,17 @@
+{
+  "name": "playwright-tests-for-resume-builder",
+  "private": true,
+  "version": "0.1.0",
+  "description": "System (end-to-end) tests for the resume builder in the parent directory. Kept in its own package so it can move to a separate repository later.",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "^26.6.2",
+    "typescript": "^7.0.2"
+  }
+}

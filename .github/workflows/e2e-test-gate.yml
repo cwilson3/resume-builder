@@ -1,0 +1,88 @@
+name: E2E Test Gate
+run-name: E2E Test Gate initiated by @${{ github.actor }}
+
+on:
+  workflow_call:
+
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+          - info
+          - warning
+          - debug
+
+jobs:
+  e2e_tests:
+    name: Run Playwright Tests
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: resume-builder-playwright
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: './package.json'
+          cache: 'npm'
+          cache-dependency-path: |
+            ./package-lock.json
+            ./resume-builder-playwright/package-lock.json
+
+      # The tests start the builder's Vite dev server and run its build, so the
+      # builder's own dependencies are needed too.
+      - name: Install Builder Dependencies
+        working-directory: .
+        run: npm ci
+
+      - name: Install Test Dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright Tests
+        id: e2e
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee e2e-test-output.log
+
+      - name: Summarize Playwright Test Results
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          {
+            echo "### E2E Test Gate"
+            echo ""
+            echo "- Command: \`npm test\` in \`resume-builder-playwright\` (\`playwright test\`)"
+            echo "- Result: \`${{ steps.e2e.outcome }}\`"
+            echo ""
+            echo "<details><summary>Last 50 lines of output</summary>"
+            echo ""
+            echo '```'
+            tail -n 50 e2e-test-output.log 2>/dev/null || echo "(no output captured)"
+            echo '```'
+            echo ""
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Playwright Test Results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-test-results
+          path: |
+            resume-builder-playwright/e2e-test-output.log
+            resume-builder-playwright/playwright-report/
+            resume-builder-playwright/test-results/
+          if-no-files-found: ignore
+          retention-days: 3

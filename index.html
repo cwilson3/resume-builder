@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resume Builder</title>
+<link rel="icon" type="image/svg+xml" href="/src/assets/hardhat.svg">
+<meta name="description" content="Edit a working copy of the master resume and download it as ATS-friendly Markdown or PDF. The master file is never modified.">
+<link rel="stylesheet" href="/src/builder.css">
+</head>
+<body>
+<script>(function(){try{if(localStorage.getItem('rezoom.theme')==='dark')document.body.classList.add('dark-theme');}catch(e){}})();</script>
+<script>(function(){try{var w=localStorage.getItem('rezoom.width');if(w==='24'||w==='40'||w==='full'){document.body.classList.remove('width-24','width-40','width-full');document.body.classList.add('width-'+w);}}catch(e){}})();</script>
+
+<header class="page-header">
+  <div class="page-title">
+    <h1><img class="brand-icon" src="/src/assets/hardhat.svg" alt="" width="28" height="28">Resume Builder</h1>
+    <p class="subtitle">Edit a working copy of the master resume, then download it as ATS-friendly Markdown or PDF. The master file is never modified.</p>
+  </div>
+  <div class="settings">
+    <button type="button" id="settingsButton" class="settings-button" aria-label="Settings" title="Settings" aria-expanded="false" aria-controls="settingsPanel">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <div id="settingsPanel" class="settings-panel" role="group" aria-label="Display settings" hidden>
+      <div class="settings-row">
+        <span class="settings-label">Theme</span>
+        <label class="theme-toggle" for="themeSwitch"><input type="checkbox" id="themeSwitch" role="switch"> Dark mode</label>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label" id="widthLabel">Content width</span>
+        <div class="width-toggle" id="widthToggle" role="group" aria-labelledby="widthLabel">
+          <button type="button" data-width="24" title="Compact side margins, wider content">24</button>
+          <button type="button" data-width="40" title="Default side margins">40</button>
+          <button type="button" data-width="full" title="Full width">Full</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card toolbar" aria-label="Build controls">
+    <div class="group group-source">
+      <span class="eyebrow">Source</span>
+      <span id="sourceLabel" class="source-label"></span>
+      <span id="modifiedBadge" class="badge badge-gold" hidden>Modified</span>
+    </div>
+    <div class="group">
+      <button type="button" id="btnUndo" class="btn-ghost" disabled>Undo</button>
+      <button type="button" id="btnReset" class="btn-ghost" disabled>Reset to master</button>
+      <button type="button" id="btnOpen" class="btn-ghost">Change source</button>
+      <input type="file" id="fileInput" accept=".md,.markdown,text/markdown,text/plain" hidden aria-label="Open a Markdown file">
+    </div>
+    <div class="group group-status">
+      <span id="status" class="status"></span>
+      <span id="flash" class="status flash" role="status" aria-live="polite"></span>
+      <button type="button" id="btnDownloadOpen" class="btn-primary" aria-haspopup="dialog" aria-controls="downloadDialog" disabled>Download…</button>
+    </div>
+  </section>
+
+  <div id="warning" class="callout warn" role="alert" hidden></div>
+
+  <div class="builder-grid">
+    <div class="editor-column">
+      <div id="editor"></div>
+      <button type="button" id="btnAddSection" class="btn-secondary" disabled>+ Add section</button>
+    </div>
+    <aside class="card preview-pane" aria-label="Output preview">
+      <div class="tabs" role="tablist" aria-label="Output view">
+        <button type="button" id="tabPreview" class="btn-ghost" role="tab" aria-selected="true" aria-controls="previewPanel">Preview</button>
+        <button type="button" id="tabMarkdown" class="btn-ghost" role="tab" aria-selected="false" aria-controls="markdownPanel">Markdown</button>
+      </div>
+      <div id="previewPanel" role="tabpanel" aria-labelledby="tabPreview">
+        <div id="preview" class="resume-paper"></div>
+      </div>
+      <div id="markdownPanel" role="tabpanel" aria-labelledby="tabMarkdown" hidden>
+        <textarea id="mdOut" readonly aria-label="Markdown output" spellcheck="false"></textarea>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer>
+  <p>Edits live only in this page (and this browser's local storage). Downloads are built from the current working copy by the same scripts the unit tests exercise.</p>
+</footer>
+
+<dialog id="downloadDialog" class="dialog download-dialog" aria-labelledby="downloadTitle">
+  <form id="downloadForm" method="dialog">
+    <h2 id="downloadTitle">Download</h2>
+    <div class="download-fields">
+      <label for="formatPicker">Format</label>
+      <select id="formatPicker">
+        <option value="md">Markdown (.md)</option>
+        <option value="pdf">PDF (.pdf)</option>
+      </select>
+      <label for="marginPicker" class="margin-field" hidden>Margins</label>
+      <select id="marginPicker" class="margin-field" hidden title="PDF page margins on every side. Compact is the 0.5 inch minimum recommended for applicant tracking systems."></select>
+      <label for="separatorPicker">Separator</label>
+      <select id="separatorPicker" aria-describedby="separatorHint" title="How the &quot; | &quot; between fields (company, location, dates) is shown in the preview and the PDF. The Markdown always keeps the pipe."></select>
+      <p id="separatorHint" class="download-hint">Also changes the preview. Markdown always keeps the pipe.</p>
+      <label for="filename">File name</label>
+      <span class="filename-field">
+        <input type="text" id="filename" placeholder="Bilbo-Baggins-Resume" autocomplete="off" spellcheck="false">
+        <span id="extLabel" class="ext-label">.md</span>
+      </span>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" id="btnDownloadCancel" class="btn-ghost">Cancel</button>
+      <button type="submit" id="btnDownload" class="btn-primary">Download</button>
+    </div>
+  </form>
+</dialog>
+
+<script>(function(){var sw=document.getElementById('themeSwitch');if(!sw)return;sw.checked=document.body.classList.contains('dark-theme');sw.addEventListener('change',function(){document.body.classList.toggle('dark-theme',sw.checked);try{localStorage.setItem('rezoom.theme',sw.checked?'dark':'light');}catch(e){}});})();</script>
+<script>(function(){var g=document.getElementById('widthToggle');if(!g)return;var btns=g.querySelectorAll('button[data-width]');function mark(w){btns.forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-width')===w?'true':'false');});}var m=document.body.className.match(/\bwidth-(24|40|full)\b/);mark(m?m[1]:'40');btns.forEach(function(b){b.addEventListener('click',function(){var w=b.getAttribute('data-width');document.body.classList.remove('width-24','width-40','width-full');document.body.classList.add('width-'+w);mark(w);try{localStorage.setItem('rezoom.width',w);}catch(e){}});});})();</script>
+<script>(function(){var btn=document.getElementById('settingsButton'),panel=document.getElementById('settingsPanel');if(!btn||!panel)return;function setOpen(open){panel.hidden=!open;btn.setAttribute('aria-expanded',open?'true':'false');}btn.addEventListener('click',function(){setOpen(panel.hidden);});document.addEventListener('click',function(e){if(!panel.hidden&&!panel.contains(e.target)&&!btn.contains(e.target))setOpen(false);});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!panel.hidden){setOpen(false);btn.focus();}});})();</script>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

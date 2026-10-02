@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Resume Builder favicon: an orange hardhat. Referenced from index.html and inlined into dist/index.html by the build. -->
+  <path d="M3 19.5a13 13 0 0 1 26 0z" fill="#F28C28"/>
+  <rect x="13.75" y="6.5" width="4.5" height="13" rx="2.25" fill="#C96A12"/>
+  <path d="M7.2 15.1a9.8 9.8 0 0 1 4.2-6.2" stroke="#FFD3A0" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <rect x="0.5" y="19" width="31" height="6.5" rx="3.25" fill="#E27A1E"/>
+</svg>
