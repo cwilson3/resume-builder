@@ -6,7 +6,7 @@
 
 <div align="center">
 
-  [![Version](https://img.shields.io/static/v1?label=Resume%20Builder&message=v0.1.0-beta&labelColor=F28C28&color=f4f4f4&style=flat)](#resume-builder)
+  [![Version](https://img.shields.io/static/v1?label=Resume%20Builder&message=v0.1.0-beta&labelColor=F28C28&color=f4f4f4&style=flat)](#-resume-builder)
   [![Playwright Version](https://img.shields.io/badge/Playwright-1.63.0-brightgreen.svg?logo=playwright)](https://playwright.dev/docs/intro)
   [![TypeScript Version](https://img.shields.io/badge/TypeScript-7.0.2-blue.svg?logo=typescript)](https://www.typescriptlang.org/)
 
