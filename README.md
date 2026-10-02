@@ -36,7 +36,7 @@ the source file, decide what to keep or cut for a given job description, and
 produce a finished resume, all within a framework that keeps the human in the
 loop and the work auditable.
 
-ResumeBuilder ships with a Bilbo Baggins resume as source contet
+Resume Builder ships with a Bilbo Baggins resume as source content
 (`resume/Bilbo-Baggins-Resume.md`); point `rezoom.config.json` at your own
 Markdown resume to use it for real. Load the source file (or any Markdown resume), modify, add, or
 delete sections and content in the page, then download the result as Markdown or as
