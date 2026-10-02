@@ -10,7 +10,7 @@
   [![Playwright Version](https://img.shields.io/badge/Playwright-1.63.0-brightgreen.svg?logo=playwright)](https://playwright.dev/docs/intro)
   [![TypeScript Version](https://img.shields.io/badge/TypeScript-7.0.2-blue.svg?logo=typescript)](https://www.typescriptlang.org/)
 
-  [Master document](#master-document) •
+  [Source file](#source-file) •
   [Quick start](#quick-start) •
   [Using the page](#using-the-page) •
   [Why the PDF is ATS-friendly](#why-the-pdf-is-ats-friendly) •
@@ -19,46 +19,46 @@
 
 </div>
 
-A single-page tool for producing tailored versions of a master resume without ever
-editing the master itself. It ships with a Bilbo Baggins resume
+A single-page tool for producing tailored versions of a source resume without ever
+editing the source file itself. It ships with a Bilbo Baggins resume
 (`resume/Bilbo-Baggins-Resume.md`) as filler; point `rezoom.config.json` at your own
-Markdown resume to use it for real. Load the master (or any Markdown resume), modify, add, or
+Markdown resume to use it for real. Load the source file (or any Markdown resume), modify, add, or
 delete sections and content in the page, then download the result as Markdown or as
 an ATS-friendly PDF. All file building happens in small pure TypeScript modules that
 run both in the browser and in Node, so the same code is unit-tested and used by a
 command-line script.
 
-## Master document
+## Source file
 
-The master (superset of everything that could go on the resume) is whichever Markdown
+The source file (superset of everything that could go on the resume) is whichever Markdown
 file `rezoom.config.json` points at. The path is relative to this directory:
 
 ```json
 { "master": "resume/Bilbo-Baggins-Resume.md" }
 ```
 
-The master is not built into the page. `npm run build` copies it into `dist/` beside
+The source file is not built into the page. `npm run build` copies it into `dist/` beside
 `index.html` (for example `dist/Bilbo-Baggins-Resume.md`), and the page only knows its
-file name. Hand off both files together. The page reads the master and never writes to it.
+file name. Hand off both files together. The page reads the source file and never writes to it.
 The `REZOOM_MASTER` environment variable overrides the config for a single command and is
 resolved the same way, for example `REZOOM_MASTER=../my-resume.md npm run build`.
 
-How the page finds its master at start-up:
+How the page finds its source file at start-up:
 
 1. **Served over http** (`npm run dev`, or `dist/` on any web host): it fetches the
    shipped file, so edits to that file show up on the next load.
 2. **Opened from disk** (`file://`): browsers do not let a page read other files on
-   its own, so the fetch fails. The page falls back to the master stored in this browser
+   its own, so the fetch fails. The page falls back to the source file stored in this browser
    from an earlier visit. On a first visit there is none, so it shows a welcome panel
    that names the shipped file and offers **Choose a resume…**.
-3. A file chosen with **Choose a resume…** or **Change source** becomes the master and
-   stays the master, here and after a reload, until another file is chosen.
+3. A file chosen with **Choose a resume…** or **Change source** becomes the source file and
+   stays the source file, here and after a reload, until another file is chosen.
 
-**Reset to master** is disabled until a master has been loaded, then returns to it.
-The master and the in-progress working copy are kept in this browser's local storage
+**Reset to master** is disabled until a source file has been loaded, then returns to it.
+The source file and the in-progress working copy are kept in this browser's local storage
 under `rezoom.master.v1` and `rezoom.workingCopy.v1`. Reset discards the working copy.
 
-### What the master file must look like
+### What the source file must look like
 
 Any Markdown file works as long as its structure maps onto the builder's fields:
 
@@ -80,15 +80,15 @@ would be read as the name.
 
 ```bash
 npm install
-npm run dev          # http://localhost:5173, live-reloads when the master changes
+npm run dev          # http://localhost:5173, live-reloads when the source file changes
 ```
 
 Other commands:
 
 | Command | What it does |
 | ------- | ------------ |
-| `npm run build` | Bundles the page into one self-contained `dist/index.html` that also works when opened from disk (`file://`), and copies the master named in `rezoom.config.json` beside it. |
-| `npm run build:file -- --format pdf` | Builds a PDF (named after the resume, for example `dist/Bilbo-Baggins-Resume.pdf`) from the configured master without a browser. Also `--format md`, `--in <file.md>`, `--out <path>`, `--margin compact` (a preset name or a number of points), and `--separator pipe` (how the ` \| ` between fields is drawn; `dot`, the default, or `pipe`). |
+| `npm run build` | Bundles the page into one self-contained `dist/index.html` that also works when opened from disk (`file://`), and copies the source file named in `rezoom.config.json` beside it. |
+| `npm run build:file -- --format pdf` | Builds a PDF (named after the resume, for example `dist/Bilbo-Baggins-Resume.pdf`) from the configured source file without a browser. Also `--format md`, `--in <file.md>`, `--out <path>`, `--margin compact` (a preset name or a number of points), and `--separator pipe` (how the ` \| ` between fields is drawn; `dot`, the default, or `pipe`). |
 | `npm test` | Runs the Vitest unit suite (145 tests). |
 | `npm run coverage` | Unit tests with a V8 coverage report and thresholds (95% statements, 90% branches, 95% functions, 95% lines). |
 | `npm run typecheck` | TypeScript, no emit. |
@@ -118,12 +118,12 @@ README) kept apart per the team quality guide so it can move to its own reposito
   line; education and certification items) is shown in the preview and the PDF: a
   middle dot ( · ), the default, or the pipe itself. It is a display choice only. The
   editor, the Markdown download, and the working copy always keep the pipe in the
-  source, so the master round-trips unchanged and the
+  Markdown, so the source file round-trips unchanged and the
   Modified badge does not light up. Only pipes with a space on both sides are swapped.
   Although it lives in the Download dialog, changing it updates the preview right away.
   The choice persists in this browser.
 - **Undo** reverts structural changes and text edits; **Reset to master** reloads the
-  master; **Change source** loads any other Markdown resume and makes it the master.
+  source file; **Change source** loads any other Markdown resume and makes it the source file.
 - A warning appears if the text contains characters the standard PDF fonts cannot
   render (for example the old `▪` bullet or emoji).
 - **Settings** (the gear in the top-right corner): a dark-mode switch and a content-width
@@ -161,17 +161,17 @@ its own bullets before the next heading.
 | ------ | -------------- | ----- |
 | `src/model.ts` | Resume data model and pure, immutable operations (add, delete, move, rename, entries). | `model.test.ts` |
 | `src/parse.ts` | Markdown → Resume. Tolerates legacy bullet glyphs. | `parse.test.ts` |
-| `src/serialize.ts` | Resume → Markdown in the master's exact shape. Round-trips the master byte for byte. | `serialize.test.ts` |
+| `src/serialize.ts` | Resume → Markdown in the source file's exact shape. Round-trips the source file byte for byte. | `serialize.test.ts` |
 | `src/inline.ts` | Bold, italic, and link spans shared by the HTML preview and the PDF. | `inline.test.ts` |
 | `src/render-html.ts` | Resume → escaped HTML for the live preview. | `render-html.test.ts` |
 | `src/pdf.ts` | Resume → PDF via jsPDF: rich-text wrapping into same-style runs, unkerned placement, bullets, page breaks, the separator option, character support check. | `pdf.test.ts` |
 | `src/separator.ts` | The field-separator presets (middle dot, the default, and pipe) and the pure swap applied to a Resume for display. Shared by the preview and the PDF; never by the Markdown. | `separator.test.ts` |
 | `src/build.ts` | File naming and the one place that turns a Resume into downloadable bytes. | `build.test.ts` |
-| `src/storage.ts` | Guarded local storage for the working copy and the master (its name, its Markdown, and whether it was shipped or picked). | `storage.test.ts` |
-| `src/master.ts` | The shipped master's file name (from the `rezoom-master-resume` plugin in `vite.config.ts`) and the fetch that reads it from beside the page. | `master.test.ts` |
+| `src/storage.ts` | Guarded local storage for the working copy and the source file (its name, its Markdown, and whether it was shipped or picked). | `storage.test.ts` |
+| `src/master.ts` | The shipped source file's name (from the `rezoom-master-resume` plugin in `vite.config.ts`) and the fetch that reads it from beside the page. | `master.test.ts` |
 | `src/main.ts`, `src/dom.ts` | UI wiring only; covered by the end-to-end suite. | Playwright |
 | `src/assets/hardhat.svg` | The page icon (an orange hardhat), used as the favicon and beside the page title. Edit this file; `vite.config.ts` inlines both uses into `index.html` as data URIs in dev and in the build, so the page stays a single file. | Visual |
-| `scripts/resolve-master.ts` | Reads `rezoom.config.json` (or `REZOOM_MASTER`) to find the master. Shared by the Vite plugin and the CLI so they always agree. | `resolve-master.test.ts` |
+| `scripts/resolve-master.ts` | Reads `rezoom.config.json` (or `REZOOM_MASTER`) to find the source file. Shared by the Vite plugin and the CLI so they always agree. | `resolve-master.test.ts` |
 | `scripts/build-file.ts` | Command-line build using the same modules. | Manual, `npm run build:file` |
 
 Unit tests are co-located with the code they test, per the team quality guide. They
