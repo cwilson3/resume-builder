@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0-beta",
   "type": "module",
+  "license": "MIT",
   "description": "Resume builder: edit a working copy of a master Markdown resume in the browser and download it as an ATS-friendly .md or .pdf. Never writes to the master.",
   "scripts": {
     "dev": "vite",
