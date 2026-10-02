@@ -1,4 +1,23 @@
-# Resume Builder
+<!-- markdownlint-configure-file {
+  "MD033": false
+} -->
+
+# <img src="src/assets/hardhat.svg" alt="" width="32" height="32"> Resume Builder
+
+<div align="center">
+
+  [![Version](https://img.shields.io/static/v1?label=Resume%20Builder&message=v0.1.0-beta&labelColor=F28C28&color=f4f4f4&style=flat)](#-resume-builder)
+  [![Playwright Version](https://img.shields.io/badge/Playwright-1.63.0-brightgreen.svg?logo=playwright)](https://playwright.dev/docs/intro)
+  [![TypeScript Version](https://img.shields.io/badge/TypeScript-7.0.2-blue.svg?logo=typescript)](https://www.typescriptlang.org/)
+
+  [Master document](#master-document) •
+  [Quick start](#quick-start) •
+  [Using the page](#using-the-page) •
+  [Why the PDF is ATS-friendly](#why-the-pdf-is-ats-friendly) •
+  [Architecture](#architecture) •
+  [Limitations](#limitations)
+
+</div>
 
 A single-page tool for producing tailored versions of a master resume without ever
 editing the master itself. It ships with a Bilbo Baggins resume
