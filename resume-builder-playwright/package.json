@@ -2,6 +2,7 @@
   "name": "playwright-tests-for-resume-builder",
   "private": true,
   "version": "0.1.0-beta",
+  "license": "MIT",
   "description": "System (end-to-end) tests for the resume builder in the parent directory. Kept in its own package so it can move to a separate repository later.",
   "scripts": {
     "test": "playwright test",

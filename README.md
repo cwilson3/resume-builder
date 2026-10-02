@@ -10,23 +10,94 @@
   [![Playwright Version](https://img.shields.io/badge/Playwright-1.63.0-brightgreen.svg?logo=playwright)](https://playwright.dev/docs/intro)
   [![TypeScript Version](https://img.shields.io/badge/TypeScript-7.0.2-blue.svg?logo=typescript)](https://www.typescriptlang.org/)
 
-  [Source file](#source-file) •
+  [About](#about) •
   [Quick start](#quick-start) •
   [Using the page](#using-the-page) •
+  [Source file](#source-file) •
   [Why the PDF is ATS-friendly](#why-the-pdf-is-ats-friendly) •
   [Architecture](#architecture) •
-  [Limitations](#limitations)
+  [Limitations](#limitations) •
+  [License](#license)
 
 </div>
 
-A single-page tool for producing tailored versions of a source resume without ever
-editing the source file itself. It ships with a Bilbo Baggins resume
-(`resume/Bilbo-Baggins-Resume.md`) as filler; point `rezoom.config.json` at your own
+## About
+
+Maintaining a single, complete resume and producing targeted versions of it for
+each opportunity is tedious, error-prone work - exactly the kind of work AI
+agents are good at. Resume Builder provides the framework that makes that
+workflow visible and repeatable: keep one master source file with everything that
+could go on a resume, load it into the builder, then edit, rearrange, or remove
+sections to create a version tailored to a specific role or purpose. Download the
+result as Markdown or as an ATS-friendly PDF, and the source file is never
+touched. Because every step (the source file, the edits, the output) is a
+plain file with a clear structure, an AI agent can drive the same workflow: read
+the source file, decide what to keep or cut for a given job description, and
+produce a finished resume, all within a framework that keeps the human in the
+loop and the work auditable.
+
+Resume Builder ships with a Bilbo Baggins resume as source content
+(`resume/Bilbo-Baggins-Resume.md`); point `rezoom.config.json` at your own
 Markdown resume to use it for real. Load the source file (or any Markdown resume), modify, add, or
 delete sections and content in the page, then download the result as Markdown or as
 an ATS-friendly PDF. All file building happens in small pure TypeScript modules that
 run both in the browser and in Node, so the same code is unit-tested and used by a
 command-line script.
+
+## Quick start
+
+```bash
+npm install
+npm run dev          # http://localhost:5173, live-reloads when the source file changes
+```
+
+Other commands:
+
+| Command | What it does |
+| ------- | ------------ |
+| `npm run build` | Bundles the page into one self-contained `dist/index.html` that also works when opened from disk (`file://`), and copies the source file named in `rezoom.config.json` beside it. |
+| `npm run build:file -- --format pdf` | Builds a PDF (named after the resume, for example `dist/Bilbo-Baggins-Resume.pdf`) from the configured source file without a browser. Also `--format md`, `--in <file.md>`, `--out <path>`, `--margin compact` (a preset name or a number of points), and `--separator pipe` (how the ` \| ` between fields is drawn; `dot`, the default, or `pipe`). |
+| `npm test` | Runs the Vitest unit suite (145 tests). |
+| `npm run coverage` | Unit tests with a V8 coverage report and thresholds (95% statements, 90% branches, 95% functions, 95% lines). |
+| `npm run typecheck` | TypeScript, no emit. |
+
+End-to-end tests live in `resume-builder-playwright/`, a separate npm package
+(`playwright-tests-for-resume-builder`; see its README) kept apart per the team quality
+guide so it can move to its own repository later.
+
+## Using the page
+
+- **Header card**: name and contact line. Keep contact details here, never in a page
+  header or footer, so parsers can find them.
+- **Section cards**: rename, reorder, collapse, or delete a section. Inside a section,
+  each block is a paragraph, a list (one bullet per line), or a subheading. A subheading
+  plus the blocks beneath it form an entry (a job); "Delete entry" removes the whole
+  group at once. "+ Entry" adds a ready-made role skeleton.
+- **Inline formatting**: `**bold**`, `*italic*`, and `[text](https://…)` are supported
+  in any text and render in both the preview and the PDF.
+- **Download…** (toolbar) opens the Download dialog, which holds the Format, Margins,
+  Separator, and File name options below. **Download** in the dialog (or Enter in the
+  file name) saves the file and closes it; **Cancel** or Escape closes it without
+  downloading.
+- **Format**: `.md` or `.pdf`. Optionally type a file name; the default is derived from
+  the header name, for example `Bilbo-Baggins-Resume.pdf`.
+- **Margins** (shown for PDF only): Comfortable (48 pt, the default) or Compact (36 pt,
+  the 0.5 inch minimum commonly recommended for ATS parsing). The choice persists in this browser.
+- **Separator**: how the ` | ` between fields (company, location, dates; the contact
+  line; education and certification items) is shown in the preview and the PDF: a
+  middle dot ( · ), the default, or the pipe itself. It is a display choice only. The
+  editor, the Markdown download, and the working copy always keep the pipe in the
+  Markdown, so the source file round-trips unchanged and the
+  Modified badge does not light up. Only pipes with a space on both sides are swapped.
+  Although it lives in the Download dialog, changing it updates the preview right away.
+  The choice persists in this browser.
+- **Undo** reverts structural changes and text edits; **Reset to master** reloads the
+  source file; **Change source** loads any other Markdown resume and makes it the source file.
+- A warning appears if the text contains characters the standard PDF fonts cannot
+  render (for example the old `▪` bullet or emoji).
+- **Settings** (the gear in the top-right corner): a dark-mode switch and a content-width
+  choice (24, 40, or Full). The panel closes on Escape or a click outside it. Both persist in this browser. Styling is intentionally plain:
+  system fonts, neutral colors, no branding.
 
 ## Source file
 
@@ -75,60 +146,6 @@ Any Markdown file works as long as its structure maps onto the builder's fields:
 Headings deeper than `###` are read as subheadings, and tables, images, and code
 fences are read as plain paragraphs. The file must start with the name; front matter
 would be read as the name.
-
-## Quick start
-
-```bash
-npm install
-npm run dev          # http://localhost:5173, live-reloads when the source file changes
-```
-
-Other commands:
-
-| Command | What it does |
-| ------- | ------------ |
-| `npm run build` | Bundles the page into one self-contained `dist/index.html` that also works when opened from disk (`file://`), and copies the source file named in `rezoom.config.json` beside it. |
-| `npm run build:file -- --format pdf` | Builds a PDF (named after the resume, for example `dist/Bilbo-Baggins-Resume.pdf`) from the configured source file without a browser. Also `--format md`, `--in <file.md>`, `--out <path>`, `--margin compact` (a preset name or a number of points), and `--separator pipe` (how the ` \| ` between fields is drawn; `dot`, the default, or `pipe`). |
-| `npm test` | Runs the Vitest unit suite (145 tests). |
-| `npm run coverage` | Unit tests with a V8 coverage report and thresholds (95% statements, 90% branches, 95% functions, 95% lines). |
-| `npm run typecheck` | TypeScript, no emit. |
-
-End-to-end tests live in `resume-builder-playwright/`, a separate npm package (see its
-README) kept apart per the team quality guide so it can move to its own repository later.
-
-## Using the page
-
-- **Header card**: name and contact line. Keep contact details here, never in a page
-  header or footer, so parsers can find them.
-- **Section cards**: rename, reorder, collapse, or delete a section. Inside a section,
-  each block is a paragraph, a list (one bullet per line), or a subheading. A subheading
-  plus the blocks beneath it form an entry (a job); "Delete entry" removes the whole
-  group at once. "+ Entry" adds a ready-made role skeleton.
-- **Inline formatting**: `**bold**`, `*italic*`, and `[text](https://…)` are supported
-  in any text and render in both the preview and the PDF.
-- **Download…** (toolbar) opens the Download dialog, which holds the Format, Margins,
-  Separator, and File name options below. **Download** in the dialog (or Enter in the
-  file name) saves the file and closes it; **Cancel** or Escape closes it without
-  downloading.
-- **Format**: `.md` or `.pdf`. Optionally type a file name; the default is derived from
-  the header name, for example `Bilbo-Baggins-Resume.pdf`.
-- **Margins** (shown for PDF only): Comfortable (48 pt, the default) or Compact (36 pt,
-  the 0.5 inch minimum commonly recommended for ATS parsing). The choice persists in this browser.
-- **Separator**: how the ` | ` between fields (company, location, dates; the contact
-  line; education and certification items) is shown in the preview and the PDF: a
-  middle dot ( · ), the default, or the pipe itself. It is a display choice only. The
-  editor, the Markdown download, and the working copy always keep the pipe in the
-  Markdown, so the source file round-trips unchanged and the
-  Modified badge does not light up. Only pipes with a space on both sides are swapped.
-  Although it lives in the Download dialog, changing it updates the preview right away.
-  The choice persists in this browser.
-- **Undo** reverts structural changes and text edits; **Reset to master** reloads the
-  source file; **Change source** loads any other Markdown resume and makes it the source file.
-- A warning appears if the text contains characters the standard PDF fonts cannot
-  render (for example the old `▪` bullet or emoji).
-- **Settings** (the gear in the top-right corner): a dark-mode switch and a content-width
-  choice (24, 40, or Full). The panel closes on Escape or a click outside it. Both persist in this browser. Styling is intentionally plain:
-  system fonts, neutral colors, no branding.
 
 ## Why the PDF is ATS-friendly
 
@@ -184,3 +201,7 @@ were generated with AI assistance and should be reviewed like any other test cod
 - The PDF uses the standard 14 fonts, so text is limited to the Windows-1252 character
   set. The page warns before download when other characters are present.
 - Numbered lists are read but written back as `-` bullets.
+
+## License
+
+[MIT](LICENSE)
