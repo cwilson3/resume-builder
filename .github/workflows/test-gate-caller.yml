@@ -32,9 +32,13 @@ jobs:
     name: ETG Caller
     uses: ./.github/workflows/e2e-test-gate.yml
 
+  type_check_caller:
+    name: Type Check Caller
+    uses: ./.github/workflows/type-check.yml
+
   test_gate:
     name: Test Gate
-    needs: [unit_test_gate_caller, e2e_test_gate_caller]
+    needs: [unit_test_gate_caller, e2e_test_gate_caller, type_check_caller]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     permissions: {}
@@ -43,11 +47,12 @@ jobs:
         run: |
           echo "unit_test_gate_caller  : ${{ needs.unit_test_gate_caller.result }}"
           echo "e2e_test_gate_caller   : ${{ needs.e2e_test_gate_caller.result }}"
+          echo "type_check_caller      : ${{ needs.type_check_caller.result }}"
         shell: bash
 
       - name: Fail Unless Every Upstream Job Succeeded
-        if: ${{ needs.unit_test_gate_caller.result != 'success' || needs.e2e_test_gate_caller.result != 'success' }}
+        if: ${{ needs.unit_test_gate_caller.result != 'success' || needs.e2e_test_gate_caller.result != 'success' || needs.type_check_caller.result != 'success' }}
         run: |
-          echo "::error:: The test gate did not pass - see the UTG Caller or ETG Caller jobs in this run."
+          echo "::error:: The test gate did not pass - see the UTG Caller, ETG Caller or Type Check Caller jobs in this run."
           exit 1
         shell: bash

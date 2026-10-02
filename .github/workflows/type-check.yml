@@ -1,0 +1,87 @@
+name: Type Check
+run-name: Type Check initiated by @${{ github.actor }}
+
+on:
+  workflow_call:
+
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+          - info
+          - warning
+          - debug
+
+jobs:
+  type_check:
+    name: Run Type Check
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: './package.json'
+          cache: 'npm'
+          cache-dependency-path: './package-lock.json'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check
+        id: tsc
+        run: npm run typecheck
+
+      - name: Summarize Type Check Results
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          {
+            echo "### Type Check"
+            echo ""
+            echo "- Command: \`npm run typecheck\` (\`tsc --noEmit\`)"
+            echo "- Result: \`${{ steps.tsc.outcome }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  type_check_playwright:
+    name: Run Type Check (Playwright)
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: resume-builder-playwright
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: './package.json'
+          cache: 'npm'
+          cache-dependency-path: './resume-builder-playwright/package-lock.json'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check
+        id: tsc
+        run: npm run typecheck
+
+      - name: Summarize Type Check Results
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          {
+            echo "### Type Check (Playwright)"
+            echo ""
+            echo "- Command: \`npm run typecheck\` in \`resume-builder-playwright\` (\`tsc -p .\`)"
+            echo "- Result: \`${{ steps.tsc.outcome }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
