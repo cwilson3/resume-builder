@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>React Performance Assessment</title>
+<meta name="description" content="How the vanilla and React shells of Resume Builder are compared for performance, how to read the results, and how to run the harness for fresh numbers.">
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1d1d1f;
+    --muted: #5f6368;
+    --border: #d9dce1;
+    --surface: #f5f6f8;
+    --code-bg: #f0f2f5;
+    --accent: #1f5fbf;
+    --note-bg: #fff8e5;
+    --note-border: #e0b84a;
+    --good: #1e7a3d;
+    --warn: #a3510c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16181c;
+      --fg: #e6e8eb;
+      --muted: #a0a6ae;
+      --border: #33373e;
+      --surface: #1e2126;
+      --code-bg: #23272d;
+      --accent: #7fb0ff;
+      --note-bg: #2b2516;
+      --note-border: #8a6d1f;
+      --good: #6fcf8f;
+      --warn: #f0a560;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16181c;
+    --fg: #e6e8eb;
+    --muted: #a0a6ae;
+    --border: #33373e;
+    --surface: #1e2126;
+    --code-bg: #23272d;
+    --accent: #7fb0ff;
+    --note-bg: #2b2516;
+    --note-border: #8a6d1f;
+    --good: #6fcf8f;
+    --warn: #f0a560;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 16px 64px; }
+  header p.lede { font-size: 1.1rem; color: var(--muted); margin-top: 0; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  h2 { font-size: 1.4rem; margin: 48px 0 12px; padding-top: 8px; border-top: 1px solid var(--border); }
+  h3 { font-size: 1.1rem; margin: 28px 0 8px; }
+  a { color: var(--accent); }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+  pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow-x: auto; line-height: 1.45; }
+  pre code { background: none; padding: 0; }
+  nav.toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; margin: 24px 0; }
+  nav.toc ol { margin: 4px 0; padding-left: 20px; }
+  nav.toc li { margin: 2px 0; }
+  .table-wrap { overflow-x: auto; margin: 12px 0 20px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+  th, td { border-bottom: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--surface); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .note { background: var(--note-bg); border-left: 4px solid var(--note-border); padding: 10px 14px; border-radius: 4px; margin: 16px 0; }
+  .note p { margin: 4px 0; }
+  ol.steps > li { margin-bottom: 14px; }
+  .muted { color: var(--muted); }
+  .better { color: var(--good); font-weight: 600; }
+  .worse { color: var(--warn); font-weight: 600; }
+  ul.checklist { list-style: none; padding-left: 0; }
+  ul.checklist li { padding-left: 1.6em; position: relative; margin: 4px 0; }
+  ul.checklist li::before { content: "☐"; position: absolute; left: 0; color: var(--muted); }
+  footer { margin-top: 48px; color: var(--muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>React performance assessment</h1>
+  <p class="lede">How Resume Builder's vanilla TypeScript shell is compared with its React shell, what the
+  numbers mean, and how to run the harness yourself to get fresh ones.</p>
+</header>
+
+<nav class="toc" aria-label="Contents">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#what">What is being compared</a></li>
+    <li><a href="#scenarios">What is measured</a></li>
+    <li><a href="#reading">How to read the results</a></li>
+    <li><a href="#reference">The reference numbers</a></li>
+    <li><a href="#run">Getting fresh numbers</a></li>
+    <li><a href="#time">How long it takes, and shorter runs</a></li>
+    <li><a href="#compare">Comparing a new run with the reference</a></li>
+    <li><a href="#trouble">Troubleshooting</a></li>
+  </ol>
+</nav>
+
+<h2 id="what">1. What is being compared</h2>
+
+<p>Resume Builder has two front ends, or <em>shells</em>, over one set of pure TypeScript modules. Parsing,
+the document model, serializing, the HTML preview, and the PDF writer are shared, so the only thing that
+differs is how each shell turns a change into updated DOM. The assessment measures that shell cost, three
+ways:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Row</th><th>What it is</th><th>Built from</th></tr></thead>
+  <tbody>
+    <tr><td><strong>vanilla</strong></td><td>The hand-wired DOM shell (<code>src/main.ts</code>). Rebuilds the whole editor on every structural edit.</td><td><code>npm run build</code> in the repository root &rarr; <code>dist/index.html</code></td></tr>
+    <tr><td><strong>React, initial port</strong></td><td>The React shell as first ported, before any optimization.</td><td>Commit <code>080c53c</code>, rebuilt by <code>npm run perf:build-initial</code> &rarr; <code>resume-builder-playwright/perf/builds/react-initial.html</code></td></tr>
+    <tr><td><strong>React, optimized</strong></td><td>The current React shell, with <code>memo</code> on the editor cards and the preview pane.</td><td><code>npm run build</code> in <code>resume-builder-react/</code> &rarr; <code>resume-builder-react/dist/index.html</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Keeping the initial port as its own row is what makes the comparison useful: it separates what moving to
+React costs by itself from what one optimization won back. The shared modules are measured once on their own
+(<code>npm run bench</code> in the root), so the browser numbers can be read as shell cost on top of a common
+baseline.</p>
+
+<h2 id="scenarios">2. What is measured</h2>
+
+<p>Each build loads the same generated resume and runs the same scenarios. There are two resumes:
+<code>stress-50x10.md</code> (50 entries, 500 bullets) and <code>stress-200x10.md</code> (200 entries, 2,000
+bullets). The sample resume is far too small to show any difference.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Scenario</th><th>Reported as</th><th>Why it matters</th></tr></thead>
+  <tbody>
+    <tr><td>Single keystroke in a bullet</td><td>Time to the editor's next paint, and to the preview's next paint, with the 120 ms refresh delay and with it off (<code>?debounce=0</code>)</td><td>What a person feels while typing, and what each shell costs per keystroke</td></tr>
+    <tr><td>Sustained typing: 200 characters at one every 100 ms</td><td>Script and layout time, long tasks, with and without the delay</td><td>The cost of a realistic burst, which single keystrokes cannot show</td></tr>
+    <tr><td>Structural edits: + Entry, Delete entry, move a block, move a section, Undo</td><td>Click to the next paint, with the delay off</td><td>Where React's keyed updates should beat vanilla's full editor rebuild</td></tr>
+    <tr><td>Cold open of the built page, with the resume already stored</td><td>Time until the editor is rendered, first contentful paint, start-up script time, heap, page size</td><td>Start-up cost and page weight, which React adds to</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Every measurement runs on a production build opened from disk, in headless Chromium with the CPU slowed
+4&times;. Latency runs from the input event to the next frame after the change, which approximates the next
+paint. All of it is measured from outside the page, so no shell carries instrumentation of its own.
+<code>resume-builder-playwright/perf/README.md</code> explains each of these choices and what it costs in run
+time.</p>
+
+<h2 id="reading">3. How to read the results</h2>
+
+<ul>
+  <li><strong>The debounced numbers are the headline; the <code>?debounce=0</code> numbers are the
+  diagnosis.</strong> With the 120 ms delay, the preview waits until typing pauses, which is what a person
+  sees. With it off, both shells refresh in the same task as the keystroke, exposing each one's full cost.
+  The two are never added or averaged together.</li>
+  <li><strong>Latencies are "median / worst p95".</strong> The median of the three runs' medians, then the
+  worst of the three runs' 95th percentiles. Medians keep one stall from moving the headline; the worst p95
+  shows whether stalls happen at all. Means are never used.</li>
+  <li><strong>Per-run totals are "median run (range)".</strong> For example, script time over the 200-character
+  burst: the median of three runs, with the lowest and highest in brackets.</li>
+  <li><strong>Structural edits are timed only with the delay off.</strong> With it on, vanilla refreshes the
+  preview 120 ms after a structural edit while React does it at once, so the two would be doing different
+  work.</li>
+  <li><strong>Ratios are the result, not absolute times.</strong> The numbers depend on the machine and the
+  throttle. Compare rows within one run, and compare runs by their ratios.</li>
+  <li><strong>These are lab samples, not INP.</strong> The frame after a change approximates the paint; it is
+  not a presentation timestamp, and the lab figures are not the field metric Interaction to Next Paint.</li>
+  <li><strong>Heap is one reading after load,</strong> including garbage not yet collected. Differences of a
+  couple of MB are noise.</li>
+</ul>
+
+<h2 id="reference">4. The reference numbers</h2>
+
+<div class="note">
+  <p><strong>These were measured on the prototype</strong> this repository was cleaned up from, on Oct 25&ndash;26,
+  2026: an Apple M2 Pro, 16 GB, Chromium 148 from Playwright 1.60.0, CPU throttled 4&times;, 3 runs &times; 50
+  iterations. The prototype built the master resume into the page and had an older toolbar, so its absolute
+  numbers are not this repository's. They are kept unchanged as a point of reference in
+  <code>resume-builder-playwright/perf/prototype-reference/</code>.</p>
+</div>
+
+<h3>Summary at 200 entries</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Question</th><th class="num">vanilla</th><th class="num">React, initial</th><th class="num">React, optimized</th><th>Verdict</th></tr></thead>
+  <tbody>
+    <tr><td>Keystroke to editor paint (ms, median)</td><td class="num">9.5</td><td class="num">21.7</td><td class="num">10.4</td><td>The same to a person once optimized</td></tr>
+    <tr><td>Keystroke to preview paint, with the delay (ms, median)</td><td class="num">320.7</td><td class="num">348.7</td><td class="num">311.9</td><td>The same to a person</td></tr>
+    <tr><td>Script over 200 characters, with the delay (ms)</td><td class="num">191</td><td class="num">2,781</td><td class="num">509</td><td><span class="worse">React costs 2.7&times;</span>, down from 14.6&times;</td></tr>
+    <tr><td>+ Entry, click to paint (ms, median)</td><td class="num">502.2</td><td class="num">227.0</td><td class="num">221.1</td><td><span class="better">React about 2.3&times; faster</span></td></tr>
+    <tr><td>Move a section (ms, median)</td><td class="num">499.3</td><td class="num">383.5</td><td class="num">373.8</td><td><span class="better">React faster</span>, by less</td></tr>
+    <tr><td>Cold open: editor rendered (ms, median)</td><td class="num">670</td><td class="num">859</td><td class="num">855</td><td><span class="worse">Vanilla shows the full editor sooner</span></td></tr>
+    <tr><td>Cold open: first contentful paint (ms, median)</td><td class="num">680</td><td class="num">220</td><td class="num">220</td><td><span class="better">React paints first</span></td></tr>
+    <tr><td>Page size, gzip -9 (KB)</td><td class="num">244.5</td><td class="num">310.5</td><td class="num">310.7</td><td><span class="worse">React adds about 66 KB</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>What it says</h3>
+
+<ul>
+  <li><strong>Where React helps:</strong> every structural edit. Keyed reconciliation updates only the cards
+  that changed, while vanilla rebuilds the whole editor.</li>
+  <li><strong>Where React costs:</strong> script time per keystroke, editor start-up, and page weight.</li>
+  <li><strong>What closed the typing gap:</strong> <code>memo</code> on the editor cards and the preview pane,
+  with stable callbacks, so a keystroke re-renders only the card being typed in. It cut React's debounced
+  typing script by 82% at 200 entries and 71% at 50.</li>
+  <li><strong>What it does not change:</strong> what a person feels while typing is the same in all three. The
+  shared modules cost about 1.6 ms a keystroke unthrottled, so nearly all the measured cost is the shell and
+  the browser's layout.</li>
+</ul>
+
+<p>The full tables for both resumes, the shared-module benchmark, and the limits are in
+<code>resume-builder-playwright/perf/prototype-reference/RESULTS.md</code>.</p>
+
+<h2 id="run">5. Getting fresh numbers</h2>
+
+<h3>Before you start</h3>
+
+<ul class="checklist">
+  <li>Node 24 (the version in the root <code>package.json</code> <code>engines</code>).</li>
+  <li>A clone of the repository with git access to GitHub: building the initial port may fetch
+  <code>refs/pull/6/head</code> from <code>origin</code>.</li>
+  <li>About 4.5 hours of machine time for a full run, with the machine on mains power and kept awake.</li>
+  <li>Nothing else heavy running. Every other process competes for the CPU and shows up in the numbers.</li>
+</ul>
+
+<ol class="steps">
+  <li>
+    <strong>Install all three packages,</strong> root first, because the shared modules resolve their own
+    dependencies from it:
+<pre><code>npm ci
+(cd resume-builder-react &amp;&amp; npm ci)
+cd resume-builder-playwright
+npm ci
+npx playwright install chromium</code></pre>
+  </li>
+  <li>
+    <strong>Check the harness with a smoke run</strong> of about 3 minutes. It builds nothing, so build the
+    three pages first, and it writes outside the repository so it cannot overwrite results:
+<pre><code>npm --prefix .. run build
+npm --prefix ../resume-builder-react run build
+npm run perf:build-initial
+PERF_RUNS=1 PERF_N=4 PERF_COLD=2 PERF_FIXTURES=stress-50x10 PERF_OUT=/tmp/perf-smoke \
+  npx playwright test -c playwright.perf.config.ts</code></pre>
+    Three tests should pass, one per build. If one fails, fix that before spending hours on a full run.
+  </li>
+  <li>
+    <strong>Start the full run</strong> where it can keep going unattended. On macOS, <code>caffeinate -i</code>
+    stops the machine sleeping while it runs; <code>nohup</code> keeps it going if the terminal closes:
+<pre><code>nohup caffeinate -i npm run perf &gt; perf-run.log 2&gt;&amp;1 &amp;</code></pre>
+    <code>npm run perf</code> builds all three pages, rebuilds the initial port, runs every scenario on both
+    resumes, and renders the tables. On Linux or Windows, drop <code>caffeinate -i</code> and keep the machine
+    awake another way.
+  </li>
+  <li>
+    <strong>Follow progress</strong> in the log. A line appears as each build finishes on each resume (six in
+    all), and its JSON is written to <code>perf/results/raw/</code> as soon as its typing and editing phases
+    are done:
+<pre><code>tail -f perf-run.log
+ls -l perf/results/raw/</code></pre>
+  </li>
+  <li>
+    <strong>Read the tables</strong> in <code>perf/results/tables.md</code>, generated when the run ends. To
+    regenerate them from the JSON (after changing the report, say), build the three pages first, because the
+    page-size column is measured from the builds on disk:
+<pre><code>npm run perf:report</code></pre>
+  </li>
+  <li>
+    <strong>Add the shared-module baseline,</strong> from the repository root:
+<pre><code>npm run bench</code></pre>
+  </li>
+  <li>
+    <strong>Keep the results.</strong> Commit <code>perf/results/raw/*.json</code> and
+    <code>perf/results/tables.md</code> together, and say in the commit which settings you used if they were not
+    the defaults. Never write over <code>perf/prototype-reference/</code>.
+  </li>
+</ol>
+
+<h3>Settings</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Variable</th><th>Default</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>PERF_FIXTURES</code></td><td>both</td><td><code>stress-50x10</code>, <code>stress-200x10</code>, or both, comma-separated</td></tr>
+    <tr><td><code>PERF_SHELLS</code></td><td>all three</td><td>any of <code>vanilla</code>, <code>react-initial</code>, <code>react-optimized</code></td></tr>
+    <tr><td><code>PERF_RUNS</code></td><td>3</td><td>runs per build and resume</td></tr>
+    <tr><td><code>PERF_N</code></td><td>50</td><td>iterations of each scenario per run; keep it even, because moves are done in pairs</td></tr>
+    <tr><td><code>PERF_COLD</code></td><td>10</td><td>cold opens per run</td></tr>
+    <tr><td><code>PERF_OUT</code></td><td><code>perf/results/raw</code></td><td>where the JSON is written; use it for smoke runs</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The settings are passed to <code>npx playwright test -c playwright.perf.config.ts</code>, or put in front of
+<code>npm run perf</code>. Each JSON file records the settings, the machine, and the Chromium version it was
+measured with, and the tables print them above each resume's results.</p>
+
+<h2 id="time">6. How long it takes, and shorter runs</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Run</th><th class="num">About</th></tr></thead>
+  <tbody>
+    <tr><td>Smoke run (above)</td><td class="num">3 minutes</td></tr>
+    <tr><td>50-entry resume, one build</td><td class="num">5&ndash;6 minutes</td></tr>
+    <tr><td>50-entry resume, all three builds</td><td class="num">15&ndash;20 minutes</td></tr>
+    <tr><td>200-entry resume, one build</td><td class="num">45 minutes to 2 hours</td></tr>
+    <tr><td>Everything: both resumes, all three builds</td><td class="num">4.5 hours</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Nearly all the time is the 200-entry resume. Each run there repeats about 450 measured actions, two
+20-second typing bursts, and the cold opens, on a 2,000-bullet page with the CPU slowed 4&times;, one at a
+time. The setup is chosen for accuracy, and the long run is a side effect;
+<code>resume-builder-playwright/perf/README.md</code> lists each choice and what it costs.</p>
+
+<p>Shorter runs trade accuracy for time. Say which one you used whenever you quote the numbers:</p>
+
+<ul>
+  <li><strong>Only the 50-entry resume</strong> (<code>PERF_FIXTURES=stress-50x10</code>), about 20 minutes. You
+  lose the large-page results, where the structural-edit difference is largest.</li>
+  <li><strong>Fewer runs or iterations</strong> (<code>PERF_RUNS</code>, <code>PERF_N</code>). Time falls about in
+  proportion, but the 95th percentiles get unreliable below about 50 iterations, and one run cannot show a
+  stall that hits a whole run.</li>
+  <li><strong>Two builds instead of three</strong> (<code>PERF_SHELLS=vanilla,react-optimized</code>), a third
+  less time. Without the initial-port row, the table can no longer say what the optimization won.</li>
+</ul>
+
+<h2 id="compare">7. Comparing a new run with the reference</h2>
+
+<ul>
+  <li><strong>Compare ratios, not milliseconds.</strong> A different machine, Chromium version, or page will move
+  every absolute number. The questions are whether React still wins structural edits by about 2&times;, how much
+  script time per keystroke it still adds, and whether the initial-port gap is still about what the reference
+  shows.</li>
+  <li><strong>Expect start-up and page size to differ most.</strong> This repository's page fetches the master
+  instead of carrying it, and has a Download dialog and a welcome panel the prototype did not. The editing
+  scenarios load a stress resume first, so they move less.</li>
+  <li><strong>Check the run's header line</strong> in <code>tables.md</code> (Chromium, machine, throttle, runs
+  &times; iterations) before comparing anything.</li>
+  <li><strong>Look at the "Stuck loads replaced" column.</strong> Anything above zero means a cold open hung and was
+  replaced (see below); the row is still valid, but worth a note.</li>
+</ul>
+
+<h2 id="trouble">8. Troubleshooting</h2>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Symptom</th><th>Cause and fix</th></tr></thead>
+  <tbody>
+    <tr><td><code>Executable doesn't exist</code> when the browser launches</td><td>The Chromium build for the pinned Playwright is not installed. Run <code>npx playwright install chromium</code> in <code>resume-builder-playwright</code>.</td></tr>
+    <tr><td><code>perf:build-initial</code> says the commit is not reachable</td><td>It fetches <code>refs/pull/6/head</code> from <code>origin</code>; check that <code>origin</code> points at the GitHub repository and that you can fetch from it.</td></tr>
+    <tr><td>The React build fails to resolve <code>jspdf</code></td><td>The root package is not installed. Run <code>npm ci</code> in the repository root first.</td></tr>
+    <tr><td>A test fails with "No block starting …"</td><td>The stress resume on disk is not the generated one. Run <code>npm run perf:fixtures</code>; it rewrites both files exactly.</td></tr>
+    <tr><td>Page size shows <code>?</code></td><td>A build was missing when the report ran. Build all three, then <code>npm run perf:report</code>.</td></tr>
+    <tr><td>A cold open hangs, then the run carries on</td><td>Known and unexplained: after the long typing phases, a load occasionally never finishes. The harness gives each one 30 seconds, records it, and replaces it; more than three fail the test. The typing data is saved before the cold opens begin, so nothing earlier is lost.</td></tr>
+    <tr><td>Numbers far noisier than the reference</td><td>Something else was using the CPU, or the machine throttled or slept. Close other apps, stay on mains power, use <code>caffeinate</code>, and run again.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<footer>
+  <p>Related: <code>resume-builder-playwright/perf/README.md</code> (the harness and why it is set up this way),
+  <code>resume-builder-playwright/perf/prototype-reference/RESULTS.md</code> (the reference results in full), and
+  <code>docs/react-shell-plan.md</code> (the plan the React shell and the harness were built from).</p>
+</footer>
+
+</div>
+</body>
+</html>

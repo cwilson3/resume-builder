@@ -13,6 +13,9 @@ editor and the preview. `prototype-reference/` holds the measurements made on th
 the React shell moved here, kept as a record and a point of reference; read its "How the prototype
 differs" section before comparing a new run with it.
 
+For a step-by-step guide to what is measured, how to read the results, and how to run the harness
+for fresh numbers, open `../../docs/assessment-guide.html` in a browser.
+
 ## Running
 
 From this package, with the repository root and `resume-builder-react` installed:
