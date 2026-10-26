@@ -115,3 +115,6 @@ Each of these trades accuracy for time; say which one was used when quoting the 
 | `../playwright.perf.config.ts` | One worker, no retries, 4-hour timeout, 1400 × 1000 viewport. |
 | `../../src/pipeline.bench.ts` | `npm run bench` in the root: the shared modules alone, so the browser numbers can be read as shell cost on top. |
 | `prototype-reference/` | The prototype's results, kept unchanged. |
+
+The design discussion behind the harness (sections 5 and 7 of the plan, and the M2 and M4 results)
+is in `../../docs/react-shell-plan.md`.
