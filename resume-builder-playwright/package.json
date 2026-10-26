@@ -10,7 +10,11 @@
     "test:react": "playwright test --project=react --project=react-built-page",
     "test:headed": "playwright test --headed",
     "report": "playwright show-report",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "perf": "npm --prefix .. run build && npm --prefix ../resume-builder-react run build && node perf/build-react-initial.mts && playwright test -c playwright.perf.config.ts && node perf/report.mts",
+    "perf:build-initial": "node perf/build-react-initial.mts",
+    "perf:report": "node perf/report.mts",
+    "perf:fixtures": "node fixtures/perf/generate.mts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

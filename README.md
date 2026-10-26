@@ -61,6 +61,7 @@ Other commands:
 | `npm test` | Runs the Vitest unit suite (152 tests). |
 | `npm run coverage` | Unit tests with a V8 coverage report and thresholds (95% statements, 90% branches, 95% functions, 95% lines). |
 | `npm run typecheck` | TypeScript, no emit. |
+| `npm run bench` | Benchmarks the shared modules in Node on the performance fixtures (`src/pipeline.bench.ts`). |
 
 End-to-end tests for both shells live in `resume-builder-playwright/`, a separate npm package
 (`playwright-tests-for-resume-builder`; see its README) kept apart per the team quality
@@ -71,6 +72,10 @@ the same pure modules (it imports `src/` and copies nothing). It looks and behav
 same, with the same element ids, and exists to compare the two approaches; see its
 README. Run `npm install` here first, then `npm install && npm run dev` in that
 folder (http://localhost:5180).
+
+How the two shells compare in speed, and why measuring it takes hours, is in
+`resume-builder-playwright/perf/README.md`; the numbers measured on the prototype this
+repository came from are kept in `resume-builder-playwright/perf/prototype-reference/`.
 
 ## Using the page
 

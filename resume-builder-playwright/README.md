@@ -37,6 +37,13 @@ other dev server on those ports first, or the tests run against whatever it serv
 build already present in the local Playwright browser cache (build 1243); on a machine
 without it, or after bumping the version, run `npx playwright install chromium`.
 
+## Performance
+
+`perf/` holds a separate performance harness comparing the vanilla page with the initial and
+optimized React shells. It has its own config (`playwright.perf.config.ts`), so `npm test` never
+runs it, and a full run takes hours; `perf/README.md` explains how to run it and why it is set up
+this way.
+
 ## What is covered
 
 The dev server (`vanilla` and `react`):

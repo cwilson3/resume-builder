@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
-    "build:file": "tsx scripts/build-file.ts"
+    "build:file": "tsx scripts/build-file.ts",
+    "bench": "vitest bench --run"
   },
   "dependencies": {
     "jspdf": "^4.2.1"
