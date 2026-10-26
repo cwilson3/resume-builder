@@ -44,3 +44,9 @@ The end-to-end specs in `../resume-builder-playwright` run against this shell to
 
 The header (title, settings gear, dark mode, content width) is the vanilla page's static
 markup and inline scripts, copied into `index.html`; React renders everything below it.
+
+## Design record
+
+`../docs/react-shell-plan.md` is the plan this shell was built from: the layout and state
+design, the risks found along the way, the milestone results, and the decisions log. It
+describes the prototype this repository came from; its header maps the old paths to these.
