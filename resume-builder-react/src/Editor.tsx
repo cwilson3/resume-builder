@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Dispatch, type ReactNode } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, type Dispatch, type ReactNode } from 'react';
 import type { Block, Section } from '@core/model';
 import { fit } from '@core/dom';
 import type { Action, Ids } from './reducer';
@@ -8,6 +8,11 @@ import { listFieldValue, parseListItems } from './list-field';
  * The editor column. Every field is controlled by the live resume; React keeps
  * focus and caret because each card and block is keyed by its id from the reducer, never by index
  * and never by the block object, which a text edit replaces.
+ *
+ * `HeaderCard`, `SectionCard`, and `BlockEditor` are memoized. The model keeps the
+ * object identity of every section and block a change does not touch, and every callback passed down is
+ * stable (it takes ids as arguments instead of closing over them), so a keystroke re-renders the edited
+ * block and its section, not the whole editor.
  */
 
 interface EditorProps {
@@ -122,7 +127,7 @@ function AutoTextarea(props: { id?: string; className: string; label?: string; v
   );
 }
 
-function HeaderCard({ name, contact, dispatch }: { name: string; contact: string; dispatch: Dispatch<Action> }) {
+const HeaderCard = memo(function HeaderCard({ name, contact, dispatch }: { name: string; contact: string; dispatch: Dispatch<Action> }) {
   return (
     <section className="card ed-card ed-header">
       <div className="eyebrow">Header</div>
@@ -135,7 +140,7 @@ function HeaderCard({ name, contact, dispatch }: { name: string; contact: string
       </div>
     </section>
   );
-}
+});
 
 interface ActionButtonProps {
   act: string;
@@ -176,7 +181,7 @@ interface SectionCardProps {
   dispatch: Dispatch<Action>;
 }
 
-function SectionCard({ section, si, sectionId, last, blockIds, collapsed, onToggle, onAdd, onMoveBlock, dispatch }: SectionCardProps) {
+const SectionCard = memo(function SectionCard({ section, si, sectionId, last, blockIds, collapsed, onToggle, onAdd, onMoveBlock, dispatch }: SectionCardProps) {
   const total = section.blocks.length;
   const renderBlock = (bi: number) => (
     <BlockEditor
@@ -247,7 +252,7 @@ function SectionCard({ section, si, sectionId, last, blockIds, collapsed, onTogg
       )}
     </section>
   );
-}
+});
 
 function AddButton({ act, onClick, children }: { act: string; onClick: () => void; children: ReactNode }) {
   return (
@@ -269,7 +274,7 @@ interface BlockEditorProps {
   dispatch: Dispatch<Action>;
 }
 
-function BlockEditor({ block, si, bi, blockId, total, onMoveBlock, dispatch }: BlockEditorProps) {
+const BlockEditor = memo(function BlockEditor({ block, si, bi, blockId, total, onMoveBlock, dispatch }: BlockEditorProps) {
   const label = BLOCK_LABEL[block.type];
   const lower = label.toLowerCase();
   const update = (next: Block) => dispatch({ type: 'updateBlock', si, bi, block: next });
@@ -313,7 +318,7 @@ function BlockEditor({ block, si, bi, blockId, total, onMoveBlock, dispatch }: B
       <div className="ed-hint">{hint}</div>
     </div>
   );
-}
+});
 
 /** Keeps the typed text (blank lines, a trailing newline) that the model's item list cannot hold; see list-field.ts. */
 function ListField({ items, onChange }: { items: string[]; onChange: (items: string[]) => void }) {

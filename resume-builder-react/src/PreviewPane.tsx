@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
 /**
  * Preview and Markdown tabs. `#preview` takes the shared renderer's HTML as is: the
  * renderer escapes text and neutralizes unsafe links, and rebuilding it as components would fork the
- * preview from the PDF.
+ * preview from the PDF. Memoized: while text edits are still settling, both strings are unchanged.
  */
-export function PreviewPane({ html, markdown }: { html: string; markdown: string }) {
+export const PreviewPane = memo(function PreviewPane({ html, markdown }: { html: string; markdown: string }) {
   const [tab, setTab] = useState<'preview' | 'markdown'>('preview');
   const preview = tab === 'preview';
   return (
@@ -26,4 +26,4 @@ export function PreviewPane({ html, markdown }: { html: string; markdown: string
       </div>
     </aside>
   );
-}
+});
