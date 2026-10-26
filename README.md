@@ -58,13 +58,19 @@ Other commands:
 | ------- | ------------ |
 | `npm run build` | Bundles the page into one self-contained `dist/index.html` that also works when opened from disk (`file://`), and copies the source file named in `rezoom.config.json` beside it. |
 | `npm run build:file -- --format pdf` | Builds a PDF (named after the resume, for example `dist/Bilbo-Baggins-Resume.pdf`) from the configured source file without a browser. Also `--format md`, `--in <file.md>`, `--out <path>`, `--margin compact` (a preset name or a number of points), and `--separator pipe` (how the ` \| ` between fields is drawn; `dot`, the default, or `pipe`). |
-| `npm test` | Runs the Vitest unit suite (145 tests). |
+| `npm test` | Runs the Vitest unit suite (152 tests). |
 | `npm run coverage` | Unit tests with a V8 coverage report and thresholds (95% statements, 90% branches, 95% functions, 95% lines). |
 | `npm run typecheck` | TypeScript, no emit. |
 
 End-to-end tests live in `resume-builder-playwright/`, a separate npm package
 (`playwright-tests-for-resume-builder`; see its README) kept apart per the team quality
 guide so it can move to its own repository later.
+
+The same page is also built as a React app in `resume-builder-react/`, a second shell over
+the same pure modules (it imports `src/` and copies nothing). It looks and behaves the
+same, with the same element ids, and exists to compare the two approaches; see its
+README. Run `npm install` here first, then `npm install && npm run dev` in that
+folder (http://localhost:5180).
 
 ## Using the page
 
