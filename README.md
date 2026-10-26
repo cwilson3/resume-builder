@@ -75,7 +75,9 @@ folder (http://localhost:5180).
 
 How the two shells compare in speed, and why measuring it takes hours, is in
 `resume-builder-playwright/perf/README.md`; the numbers measured on the prototype this
-repository came from are kept in `resume-builder-playwright/perf/prototype-reference/`.
+repository came from are kept in `resume-builder-playwright/perf/prototype-reference/`, and
+the plan the React shell was built from, with its decisions and milestone results, is in
+`docs/react-shell-plan.md`.
 
 ## Using the page
 
