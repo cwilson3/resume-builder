@@ -113,7 +113,7 @@ Each of these trades accuracy for time; say which one was used when quoting the 
 | `build-react-initial.mts` | Builds the initial port from commit `080c53c` in a temporary git worktree. PR #6 was squash-merged, so the commit is not on `main`; it stays reachable as the parent of GitHub's `refs/pull/6/head`, which the script fetches if needed. |
 | `../fixtures/perf/generate.mts` | Generates the two stress resumes. |
 | `../playwright.perf.config.ts` | One worker, no retries, 4-hour timeout, 1400 × 1000 viewport. |
-| `../../src/pipeline.bench.ts` | `npm run bench` in the root: the shared modules alone, so the browser numbers can be read as shell cost on top. |
+| `../../src/pipeline.bench.ts` | `npm run bench` in the root: the shared modules alone, so the browser numbers can be read as shell cost on top. Since Vitest 5 it runs under Vite's module runner, where imported functions are reached through export getters, and Vitest warns that `inlineToHtml` (inside `renderResumeHtml`) is read through them often enough to skew results. On the same machine most functions measured 5 to 20% slower than under the Vitest 4.1.11 used for the prototype reference, so compare bench numbers only with runs on the same Vitest version. |
 | `prototype-reference/` | The prototype's results, kept unchanged. |
 
 The design discussion behind the harness (sections 5 and 7 of the plan, and the M2 and M4 results)
