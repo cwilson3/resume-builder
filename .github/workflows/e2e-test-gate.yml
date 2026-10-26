@@ -19,7 +19,8 @@ on:
 jobs:
   e2e_tests:
     name: Run Playwright Tests
-    timeout-minutes: 15
+    # The browser install (with system packages) alone has taken over 12 minutes on a fresh runner.
+    timeout-minutes: 25
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -35,12 +36,17 @@ jobs:
           cache: 'npm'
           cache-dependency-path: |
             ./package-lock.json
+            ./resume-builder-react/package-lock.json
             ./resume-builder-playwright/package-lock.json
 
-      # The tests start the builder's Vite dev server and run its build, so the
-      # builder's own dependencies are needed too.
+      # The tests start both shells' Vite dev servers and run both builds, so
+      # the vanilla page's and the React shell's dependencies are needed too.
       - name: Install Builder Dependencies
         working-directory: .
+        run: npm ci
+
+      - name: Install React Shell Dependencies
+        working-directory: resume-builder-react
         run: npm ci
 
       - name: Install Test Dependencies
@@ -63,7 +69,7 @@ jobs:
           {
             echo "### E2E Test Gate"
             echo ""
-            echo "- Command: \`npm test\` in \`resume-builder-playwright\` (\`playwright test\`)"
+            echo "- Command: \`npm test\` in \`resume-builder-playwright\` (\`playwright test\`, vanilla and React shells)"
             echo "- Result: \`${{ steps.e2e.outcome }}\`"
             echo ""
             echo "<details><summary>Last 50 lines of output</summary>"

@@ -1,31 +1,45 @@
 # playwright-tests-for-resume-builder
 
 System (end-to-end) tests for the resume builder in the parent directory (`..`), kept in a separate
-package per the team quality guide so they can move to their own repository later.
+package per the team quality guide so they can move to their own repository later. The same specs
+run against both shells: the vanilla page (`..`) and the React shell (`../resume-builder-react`).
 
 ## Run
 
+Install the vanilla page (`..`) and the React shell (`../resume-builder-react`) first; the tests
+start both dev servers and build both pages.
+
 ```bash
 npm install
-npm test            # starts the builder's Vite dev server itself, then runs Chromium
-npx playwright test --project=built-page   # only the built page (rebuilds dist/ first)
-npm run report      # opens the HTML report
+npm test                 # every project, both shells; starts both Vite dev servers itself
+npm run test:vanilla     # the vanilla page only (dev server and built page)
+npm run test:react       # the React shell only (dev server and built page)
+npm run report           # opens the HTML report
 ```
 
-There are two sets of tests:
+| Project | Runs | Against |
+| ------- | ---- | ------- |
+| `vanilla` | `tests/builder.spec.ts` | The vanilla dev server, http://localhost:5173 |
+| `react` | `tests/builder.spec.ts` | The React dev server, http://localhost:5180 |
+| `vanilla-built-page` | `tests/built-page.spec.ts` | `../dist/index.html`, opened from disk (`file://`) |
+| `react-built-page` | `tests/built-page.spec.ts` | `../resume-builder-react/dist/index.html`, opened from disk |
 
-- **`chromium`** runs `tests/builder.spec.ts` against the Vite dev server.
-- **`built-page`** runs `tests/built-page.spec.ts` against `../dist/index.html`, opened from
-  disk (`file://`) the way the page is handed out, with the source file shipped beside it. It depends on the `build` setup project
-  (`tests/build.setup.ts`), which runs `npm run build` in the builder first, so the file
-  under test is never stale. That build empties `dist/`, so it also removes any PDF that
-  `npm run build:file` left there.
+Each built-page project depends on a build setup project (`vanilla-build`, `react-build`, both
+`tests/build.setup.ts`) that runs `npm run build` in that shell's package first, so the file under
+test is never stale. The build empties that `dist/`, so in the vanilla page it also removes any PDF
+that `npm run build:file` left there. Which package a build or built-page project uses comes from
+the `shellDir` option in `tests/fixtures.ts`, set per project in `playwright.config.ts`.
+
+Outside CI, a server already listening on 5173 or 5180 is reused instead of started. Stop any
+other dev server on those ports first, or the tests run against whatever it serves.
 
 `@playwright/test` is pinned to exactly 1.63.0 because that release matches the Chromium
 build already present in the local Playwright browser cache (build 1243); on a machine
 without it, or after bumping the version, run `npx playwright install chromium`.
 
 ## What is covered
+
+The dev server (`vanilla` and `react`):
 
 - The source file loads into the editor and the preview.
 - Deleting a section removes it from the preview and from the downloaded Markdown, and
@@ -47,7 +61,7 @@ without it, or after bumping the version, run `npx playwright install chromium`.
 - An axe-core scan reports no serious or critical WCAG 2.x A/AA violations.
 - A full-page screenshot is attached to the report.
 
-The built page (`built-page`):
+The built page (`vanilla-built-page` and `react-built-page`):
 
 - The build produces a single-file page plus the source file, copied unchanged, and the page
   does not contain the resume.

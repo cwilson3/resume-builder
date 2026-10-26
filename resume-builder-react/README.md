@@ -28,6 +28,8 @@ npm run dev          # http://localhost:5180 (the vanilla page uses 5173)
 | `npm run coverage` | The same thresholds as the parent: 95% statements, 90% branches, 95% functions, 95% lines. |
 | `npm run typecheck` | TypeScript, no emit, including the shared modules it imports. |
 
+The end-to-end specs in `../resume-builder-playwright` run against this shell too (`npm run test:react` there), on the dev server and on the built page opened from disk.
+
 ## How it maps to the vanilla page
 
 | Vanilla (`../src/main.ts`, `../index.html`) | React (`src/`) |
