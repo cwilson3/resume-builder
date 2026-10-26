@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resume Builder</title>
+<link rel="icon" type="image/svg+xml" href="/src/assets/hardhat.svg">
+<meta name="description" content="Edit a working copy of the master resume and download it as ATS-friendly Markdown or PDF. The master file is never modified.">
+</head>
+<body>
+<script>(function(){try{if(localStorage.getItem('rezoom.theme')==='dark')document.body.classList.add('dark-theme');}catch(e){}})();</script>
+<script>(function(){try{var w=localStorage.getItem('rezoom.width');if(w==='24'||w==='40'||w==='full'){document.body.classList.remove('width-24','width-40','width-full');document.body.classList.add('width-'+w);}}catch(e){}})();</script>
+
+<header class="page-header">
+  <div class="page-title">
+    <h1><img class="brand-icon" src="/src/assets/hardhat.svg" alt="" width="28" height="28">Resume Builder</h1>
+    <p class="subtitle">Edit a working copy of the master resume, then download it as ATS-friendly Markdown or PDF. The master file is never modified.</p>
+  </div>
+  <div class="settings">
+    <button type="button" id="settingsButton" class="settings-button" aria-label="Settings" title="Settings" aria-expanded="false" aria-controls="settingsPanel">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <div id="settingsPanel" class="settings-panel" role="group" aria-label="Display settings" hidden>
+      <div class="settings-row">
+        <span class="settings-label">Theme</span>
+        <label class="theme-toggle" for="themeSwitch"><input type="checkbox" id="themeSwitch" role="switch"> Dark mode</label>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label" id="widthLabel">Content width</span>
+        <div class="width-toggle" id="widthToggle" role="group" aria-labelledby="widthLabel">
+          <button type="button" data-width="24" title="Compact side margins, wider content">24</button>
+          <button type="button" data-width="40" title="Default side margins">40</button>
+          <button type="button" data-width="full" title="Full width">Full</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div id="root"></div>
+
+<footer>
+  <p>Edits live only in this page (and this browser's local storage). Downloads are built from the current working copy by the same scripts the unit tests exercise.</p>
+</footer>
+
+<script>(function(){var sw=document.getElementById('themeSwitch');if(!sw)return;sw.checked=document.body.classList.contains('dark-theme');sw.addEventListener('change',function(){document.body.classList.toggle('dark-theme',sw.checked);try{localStorage.setItem('rezoom.theme',sw.checked?'dark':'light');}catch(e){}});})();</script>
+<script>(function(){var g=document.getElementById('widthToggle');if(!g)return;var btns=g.querySelectorAll('button[data-width]');function mark(w){btns.forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-width')===w?'true':'false');});}var m=document.body.className.match(/\bwidth-(24|40|full)\b/);mark(m?m[1]:'40');btns.forEach(function(b){b.addEventListener('click',function(){var w=b.getAttribute('data-width');document.body.classList.remove('width-24','width-40','width-full');document.body.classList.add('width-'+w);mark(w);try{localStorage.setItem('rezoom.width',w);}catch(e){}});});})();</script>
+<script>(function(){var btn=document.getElementById('settingsButton'),panel=document.getElementById('settingsPanel');if(!btn||!panel)return;function setOpen(open){panel.hidden=!open;btn.setAttribute('aria-expanded',open?'true':'false');}btn.addEventListener('click',function(){setOpen(panel.hidden);});document.addEventListener('click',function(e){if(!panel.hidden&&!panel.contains(e.target)&&!btn.contains(e.target))setOpen(false);});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!panel.hidden){setOpen(false);btn.focus();}});})();</script>
+<script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
