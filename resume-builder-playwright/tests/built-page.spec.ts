@@ -1,14 +1,12 @@
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { expect, test } from './fixtures';
 
-// The page as it is handed out: dist/index.html opened straight from disk, no server,
-// with the sample master shipped beside it. The `build` project rebuilds both first.
-const DIST = path.resolve(__dirname, '../../dist');
-const BUILT_PAGE = pathToFileURL(path.join(DIST, 'index.html')).href;
-const SHIPPED_MASTER = path.join(DIST, 'Bilbo-Baggins-Resume.md');
+// The page as it is handed out: the shell's dist/index.html opened straight from disk,
+// no server, with the sample master shipped beside it. Runs once per shell (vanilla and
+// React); each shell's build setup project rebuilds its dist first.
 const FIXTURE = path.resolve(__dirname, '../fixtures/other-person.md');
 
 const downloadDialog = (page: Page) => page.getByRole('dialog', { name: 'Download' });
@@ -31,13 +29,13 @@ async function download(page: Page, format?: 'md' | 'pdf'): Promise<{ filename: 
 }
 
 test.describe('built page opened from disk, before a resume is chosen', () => {
-  test('shows a welcome panel naming the shipped sample, with nothing to reset or download, and requests nothing from the network', async ({ page }) => {
+  test('shows a welcome panel naming the shipped sample, with nothing to reset or download, and requests nothing from the network', async ({ page, builtPage }) => {
     const external: string[] = [];
     page.on('request', (req) => {
       if (!/^(file|data|blob):/.test(req.url())) external.push(req.url());
     });
 
-    await page.goto(BUILT_PAGE);
+    await page.goto(builtPage);
 
     await expect(welcome(page)).toBeVisible();
     await expect(page.locator('#editor')).toContainText('Bilbo-Baggins-Resume.md');
@@ -48,8 +46,8 @@ test.describe('built page opened from disk, before a resume is chosen', () => {
     expect(external).toEqual([]);
   });
 
-  test('the welcome panel has no serious or critical accessibility violations (WCAG 2.x A/AA)', async ({ page }) => {
-    await page.goto(BUILT_PAGE);
+  test('the welcome panel has no serious or critical accessibility violations (WCAG 2.x A/AA)', async ({ page, builtPage }) => {
+    await page.goto(builtPage);
     await expect(welcome(page)).toBeVisible();
 
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
@@ -60,9 +58,9 @@ test.describe('built page opened from disk, before a resume is chosen', () => {
 });
 
 test.describe('built page opened from disk, after choosing the shipped sample', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto(BUILT_PAGE);
-    await chooseFile(page, () => page.getByRole('button', { name: 'Choose a resume…' }).click(), SHIPPED_MASTER);
+  test.beforeEach(async ({ page, builtPage, shippedMaster }) => {
+    await page.goto(builtPage);
+    await chooseFile(page, () => page.getByRole('button', { name: 'Choose a resume…' }).click(), shippedMaster);
     await expect(page.locator('#fName')).toHaveValue('Bilbo Baggins');
   });
 
@@ -100,11 +98,11 @@ test.describe('built page opened from disk, after choosing the shipped sample', 
     await expect(page.locator('#sourceLabel')).toHaveText('Master: other-person.md');
   });
 
-  test('downloads the working copy as Markdown', async ({ page }) => {
+  test('downloads the working copy as Markdown', async ({ page, shippedMaster }) => {
     const { filename, bytes } = await download(page, 'md');
 
     expect(filename).toBe('Bilbo-Baggins-Resume.md');
-    expect(bytes.toString('utf8')).toBe(readFileSync(SHIPPED_MASTER, 'utf8'));
+    expect(bytes.toString('utf8')).toBe(readFileSync(shippedMaster, 'utf8'));
   });
 
   test('downloads the working copy as a PDF', async ({ page }) => {

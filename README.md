@@ -62,7 +62,7 @@ Other commands:
 | `npm run coverage` | Unit tests with a V8 coverage report and thresholds (95% statements, 90% branches, 95% functions, 95% lines). |
 | `npm run typecheck` | TypeScript, no emit. |
 
-End-to-end tests live in `resume-builder-playwright/`, a separate npm package
+End-to-end tests for both shells live in `resume-builder-playwright/`, a separate npm package
 (`playwright-tests-for-resume-builder`; see its README) kept apart per the team quality
 guide so it can move to its own repository later.
 
