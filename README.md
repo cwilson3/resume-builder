@@ -186,9 +186,11 @@ its own bullets before the next heading.
 | `src/separator.ts` | The field-separator presets (middle dot, the default, and pipe) and the pure swap applied to a Resume for display. Shared by the preview and the PDF; never by the Markdown. | `separator.test.ts` |
 | `src/build.ts` | File naming and the one place that turns a Resume into downloadable bytes. | `build.test.ts` |
 | `src/storage.ts` | Guarded local storage for the working copy and the source file (its name, its Markdown, and whether it was shipped or picked). | `storage.test.ts` |
-| `src/master.ts` | The shipped source file's name (from the `rezoom-master-resume` plugin in `vite.config.ts`) and the fetch that reads it from beside the page. | `master.test.ts` |
+| `src/master.ts` | The shipped source file's name (from the `rezoom-master-resume` plugin in `vite-plugins.ts`) and the fetch that reads it from beside the page. | `master.test.ts` |
+| `src/settle.ts` | The 120 ms delay after a text edit before the preview, Markdown, status, and working copy refresh, and the `?debounce=<ms>` override used to measure raw cost (`?debounce=0` refreshes on every edit). | `settle.test.ts` |
+| `vite-plugins.ts` | The `rezoom-master-resume` and `rezoom-inline-icon` Vite plugins, kept out of `vite.config.ts` so any shell's Vite config can share them. | Playwright |
 | `src/main.ts`, `src/dom.ts` | UI wiring only; covered by the end-to-end suite. | Playwright |
-| `src/assets/hardhat.svg` | The page icon (an orange hardhat), used as the favicon and beside the page title. Edit this file; `vite.config.ts` inlines both uses into `index.html` as data URIs in dev and in the build, so the page stays a single file. | Visual |
+| `src/assets/hardhat.svg` | The page icon (an orange hardhat), used as the favicon and beside the page title. Edit this file; the `rezoom-inline-icon` plugin in `vite-plugins.ts` inlines both uses into `index.html` as data URIs in dev and in the build, so the page stays a single file. | Visual |
 | `scripts/resolve-master.ts` | Reads `rezoom.config.json` (or `REZOOM_MASTER`) to find the source file. Shared by the Vite plugin and the CLI so they always agree. | `resolve-master.test.ts` |
 | `scripts/build-file.ts` | Command-line build using the same modules. | Manual, `npm run build:file` |
 

@@ -2,7 +2,7 @@
  * The master (superset) resume. It is not part of the page: the build ships it
  * as a Markdown file beside index.html, and the page only knows its name. Which
  * file it is comes from rezoom.config.json (or the REZOOM_MASTER environment
- * variable), read by the `rezoom-master-resume` plugin in vite.config.ts. The
+ * variable), read by the `rezoom-master-resume` plugin in vite-plugins.ts. The
  * page reads the master and never writes it; it only ever produces new files.
  */
 export { MASTER_FILE } from 'virtual:master';

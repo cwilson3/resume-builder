@@ -9,6 +9,7 @@ import { applySeparator, SEPARATOR_PRESETS, separatorPreset, type SeparatorPrese
 import { clearWorkingCopy, loadMaster, loadWorkingCopy, saveMaster, saveWorkingCopy, type StoredMaster } from './storage';
 import { fetchShippedMaster, MASTER_FILE } from './master';
 import { downloadBlob, fit, h, qs } from './dom';
+import { settleDelay } from './settle';
 
 /**
  * UI wiring only. All document logic lives in the pure modules; this file maps
@@ -19,6 +20,8 @@ import { downloadBlob, fit, h, qs } from './dom';
  */
 
 const UNDO_LIMIT = 100;
+/** 120 ms, or `?debounce=0` to refresh on every edit when measuring raw cost. */
+const REFRESH_DELAY = settleDelay(window.location.search);
 
 let state: Resume = M.createEmptyResume();
 /** What "Reset to master" returns to; null until a master has been loaded. */
@@ -105,7 +108,7 @@ function loadMarkdown(markdown: string, label: string): void {
 
 function scheduleRefresh(): void {
   window.clearTimeout(refreshTimer);
-  refreshTimer = window.setTimeout(refresh, 120);
+  refreshTimer = window.setTimeout(refresh, REFRESH_DELAY);
 }
 
 function refresh(): void {
