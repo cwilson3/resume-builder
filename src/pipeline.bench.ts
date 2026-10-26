@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { bench, describe } from 'vitest';
+import { describe, test } from 'vitest';
 import { parseResume } from './parse';
 import { serializeResume } from './serialize';
 import { renderResumeHtml } from './render-html';
@@ -19,20 +19,26 @@ for (const name of FIXTURES) {
   const resume = parseResume(markdown);
 
   describe(name, () => {
-    bench('parseResume', () => {
-      parseResume(markdown);
-    });
-    bench('serializeResume', () => {
-      serializeResume(resume);
-    });
-    bench('renderResumeHtml', () => {
-      renderResumeHtml(resume);
-    });
-    bench('buildFile md', () => {
-      buildFile(resume, 'md', '');
-    });
-    bench('buildFile pdf', () => {
-      buildFile(resume, 'pdf', '', { margin: marginPreset(null).points, separator: '·' });
+    // Vitest 5 registers benchmarks through the test's `bench` fixture; `compare` runs them as one
+    // group and prints them side by side, as the separate `bench()` calls did before.
+    test('shared pipeline', async ({ bench }) => {
+      await bench.compare(
+        bench('parseResume', () => {
+          parseResume(markdown);
+        }),
+        bench('serializeResume', () => {
+          serializeResume(resume);
+        }),
+        bench('renderResumeHtml', () => {
+          renderResumeHtml(resume);
+        }),
+        bench('buildFile md', () => {
+          buildFile(resume, 'md', '');
+        }),
+        bench('buildFile pdf', () => {
+          buildFile(resume, 'pdf', '', { margin: marginPreset(null).points, separator: '·' });
+        }),
+      );
     });
   });
 }
